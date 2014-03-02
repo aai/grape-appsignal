@@ -12,7 +12,7 @@ module Appsignal
         req = ::Rack::Request.new(env)
         request_path = env['api.endpoint'].routes.first.route_path[1..-1].gsub(/\(\.:format\)\z/, "")
         metric_name  = "grape.api"
-        ActiveSupport::Notifications.instrument(metric_name, method: req.request_method, path: request_path) do
+        ActiveSupport::Notifications.instrument(metric_name, { method: req.request_method, path: request_path } ) do |payload|
           @app.call(env)
         end
       end
