@@ -29,7 +29,7 @@ describe Appsignal::Grape::Middleware do
     should == { method: "GET" , path: "hello/:name"}
   end
 
-  context "" do
+  context "verify the api request" do
     subject{ last_response }
 
     its(:body){ should == "hello mark" }
