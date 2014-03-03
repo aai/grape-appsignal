@@ -3,9 +3,14 @@ require 'spec_helper'
 describe Appsignal::Grape::Middleware do
 
   class TestAPI < Grape::API
+    prefix "api"
+    version "v1"
     use Appsignal::Grape::Middleware
-    get 'hello/:name' do
-      "hello #{params['name']}"
+
+    resource :hello do
+      get ':name' do
+        "hello #{params['name']}"
+      end
     end
   end
 
@@ -16,17 +21,17 @@ describe Appsignal::Grape::Middleware do
 
   before(:all) do
     @events     = []
-    ActiveSupport::Notifications.subscribe('process_action.api.hello.mark') do |*args|
+    ActiveSupport::Notifications.subscribe('process_action.grape.api.v1.hello.mark') do |*args|
       @events << ActiveSupport::Notifications::Event.new(*args)
     end
   end
 
   before(:each) do
-    get "/hello/mark"
+    get "api/v1/hello/mark"
   end
 
   it do
-    should == { method: "GET" , path: "hello/:name", action: "GET::hello/:name"}
+    should == { method: "GET" , path: "api/:version/hello/:name", action: "GET.api.v1.hello.mark"}
   end
 
   context "verify the api request" do
