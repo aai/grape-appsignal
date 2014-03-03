@@ -26,7 +26,7 @@ describe Appsignal::Grape::Middleware do
   end
 
   it do
-    should == { method: "GET" , path: "hello/:name"}
+    should == { method: "GET" , path: "hello/:name", action: "GET::hello/:name"}
   end
 
   context "verify the api request" do
