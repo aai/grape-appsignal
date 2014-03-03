@@ -16,7 +16,7 @@ describe Appsignal::Grape::Middleware do
 
   before(:all) do
     @events     = []
-    ActiveSupport::Notifications.subscribe('grape.api') do |*args|
+    ActiveSupport::Notifications.subscribe('process_action.grape') do |*args|
       @events << ActiveSupport::Notifications::Event.new(*args)
     end
   end
