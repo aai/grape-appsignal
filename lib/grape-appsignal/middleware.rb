@@ -16,7 +16,7 @@ module Appsignal
         metric_name  = "process_action.grape#{metric_path}"
         action = "#{method}#{metric_path}"
 
-        ActiveSupport::Notifications.instrument(metric_name, { method: method, path: request_path, action: action } ) do |payload|
+        ActiveSupport::Notifications.instrument(metric_name, { method: method, path: request_path, action: action, class: "API" } ) do |payload|
           @app.call(env)
         end
       end
