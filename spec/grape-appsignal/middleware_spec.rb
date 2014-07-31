@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe Appsignal::Grape::Middleware do
 
-  class TestAPI < Grape::API
+  class ComplexAPI < Grape::API
     prefix "api"
     version "v1"
     use Appsignal::Grape::Middleware
@@ -14,31 +14,79 @@ describe Appsignal::Grape::Middleware do
     end
   end
 
-  def app; TestAPI; end
+  class SimpleAPI < Grape::API
+    use Appsignal::Grape::Middleware
 
-  let(:events){ [] }
-  before do
-    ActiveSupport::Notifications.subscribe(/^[^!]/) do |*args|
-      events << ActiveSupport::Notifications::Event.new(*args)
+    resource :hello do
+      get ':id' do
+        "hello #{params['id']}"
+      end
     end
   end
 
-  subject { get "api/v1/hello/mark"; events.pop.payload }
+  context "with a simple API" do
+    let(:events){ [] }
+    let(:app){ SimpleAPI }
+    before do
+      ActiveSupport::Notifications.subscribe(/^[^!]/) do |*args|
+        events << ActiveSupport::Notifications::Event.new(*args)
+      end
+    end
 
-  it "should pass along the corret info."do
-    expect(subject).to eq(
-      { method: "GET" , path: "api/:version/hello/:name", action: "GET/api/v1/hello/mark", class: "API"}
-    )
+    subject { get "/hello/1337"; events.last}
+
+    it "delivers a payload consistent with the API call."do
+      expect(subject.payload ).to eq(
+        { method: "GET" , path: "hello/:id", action: "GET /hello/1337", class: "API"}
+      )
+    end
+
+    it "names the payload consistent with the API call."do
+      expect(subject.name ).to eq("grape.GET.hello/:id")
+    end
+
+    context "verify the api request" do
+      subject{ get "/hello/1337"; last_response }
+
+      it "returns the correct body" do
+        expect(subject.body).to eq("hello 1337")
+      end
+      it "returns the correct status code" do
+        expect(subject.status).to eq(200)
+      end
+    end
   end
 
-  context "verify the api request" do
-    subject{ get "api/v1/hello/mark"; last_response }
-
-    it "returns the correct body" do
-      expect(subject.body).to eq("hello mark")
+  context "with a complex API" do
+    let(:events){ [] }
+    let(:app){ ComplexAPI }
+    before do
+      ActiveSupport::Notifications.subscribe(/^[^!]/) do |*args|
+        events << ActiveSupport::Notifications::Event.new(*args)
+      end
     end
-    it "returns the correct status code" do
-      expect(subject.status).to eq(200)
+
+    subject { get "api/v1/hello/mark"; events.last}
+
+    it "delivers a payload consistent with the API call."do
+      expect(subject.payload ).to eq(
+        { method: "GET" , path: "api/:version/hello/:name", action: "GET /api/v1/hello/mark", class: "API"}
+      )
+    end
+
+    it "names the payload consistent with the API call."do
+      expect(subject.name ).to eq("grape.GET.api/:version/hello/:name")
+    end
+
+    context "verify the api request" do
+      subject{ get "api/v1/hello/mark"; last_response }
+
+      it "returns the correct body" do
+        expect(subject.body).to eq("hello mark")
+      end
+      it "returns the correct status code" do
+        expect(subject.status).to eq(200)
+      end
     end
   end
 end
