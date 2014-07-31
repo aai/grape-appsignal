@@ -14,7 +14,7 @@ module Appsignal
 
         request_path = env['api.endpoint'].routes.first.route_path[1..-1].sub(/\(\.:format\)\z/, "")
 
-        metric_name  = "grape.#{req.request_method}.#{request_path}"
+        metric_name  = "process_action.grape.#{req.request_method}.#{request_path}"
         metric_name = metric_name.gsub(/\/:?/, '.')
 
         action = "GRAPE#{env['PATH_INFO']}"

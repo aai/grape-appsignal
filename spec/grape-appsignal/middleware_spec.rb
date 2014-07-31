@@ -42,7 +42,7 @@ describe Appsignal::Grape::Middleware do
     end
 
     it "names the payload consistent with the API call."do
-      expect(subject.name ).to eq("grape.GET.hello.id")
+      expect(subject.name ).to eq("process_action.grape.GET.hello.id")
     end
 
     context "verify the api request" do
@@ -75,7 +75,7 @@ describe Appsignal::Grape::Middleware do
     end
 
     it "names the payload consistent with the API call."do
-      expect(subject.name ).to eq("grape.GET.api.version.hello.name")
+      expect(subject.name ).to eq("process_action.grape.GET.api.version.hello.name")
     end
 
     context "verify the api request" do
