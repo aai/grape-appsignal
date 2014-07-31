@@ -17,7 +17,7 @@ module Appsignal
         metric_name  = "grape.#{req.request_method}.#{request_path}"
         metric_name = metric_name.gsub(/\/:?/, '.')
 
-        action = "#{env['PATH_INFO']}"
+        action = "GRAPE#{env['PATH_INFO']}"
         action = action.gsub(/\//, '::')
 
         ActiveSupport::Notifications.instrument(metric_name, { method: method, path: request_path, action: action, class: "API" } ) do |payload|
