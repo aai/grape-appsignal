@@ -8,7 +8,7 @@ describe Appsignal::Grape::Middleware do
     use Appsignal::Grape::Middleware
 
     resource :hello do
-      get ':name' do
+      get 'name/:name' do
         "hello #{params['name']}"
       end
     end
@@ -37,7 +37,7 @@ describe Appsignal::Grape::Middleware do
 
     it "delivers a payload consistent with the API call."do
       expect(subject.payload ).to eq(
-        { method: "GET" , path: "hello/:id", action: "GRAPE::hello::1337", class: "API"}
+        { method: "GET" , path: "hello/:id", action: "Grape::GET/hello/:id", class: "API"}
       )
     end
 
@@ -66,20 +66,20 @@ describe Appsignal::Grape::Middleware do
       end
     end
 
-    subject { get "api/v1/hello/mark"; events.last}
+    subject { get "api/v1/hello/name/mark"; events.last}
 
     it "delivers a payload consistent with the API call."do
       expect(subject.payload ).to eq(
-        { method: "GET" , path: "api/:version/hello/:name", action: "GRAPE::api::v1::hello::mark", class: "API"}
+        { method: "GET" , path: "api/:version/hello/name/:name", action: "Grape(v1)(api)::GET/hello/name/:name", class: "API"}
       )
     end
 
     it "names the payload consistent with the API call."do
-      expect(subject.name ).to eq("process_action.grape.GET.api.version.hello.name")
+      expect(subject.name ).to eq("process_action.grape.GET.api.version.hello.name.name")
     end
 
     context "verify the api request" do
-      subject{ get "api/v1/hello/mark"; last_response }
+      subject{ get "api/v1/hello/name/mark"; last_response }
 
       it "returns the correct body" do
         expect(subject.body).to eq("hello mark")
