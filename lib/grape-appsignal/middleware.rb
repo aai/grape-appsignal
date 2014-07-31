@@ -14,9 +14,9 @@ module Appsignal
 
         api_endpoint = env['api.endpoint']
 
-        puts api_endpoint.method_name
 
         method_name = api_endpoint.method_name.gsub(/ ?[ \/]/, '/') if api_endpoint && api_endpoint.method_name
+        method_name = method_name.gsub(/\/\//, '/') if method_name
 
         request_path = api_endpoint.routes.first.route_path[1..-1].sub(/\(\.:format\)\z/, "")
 
