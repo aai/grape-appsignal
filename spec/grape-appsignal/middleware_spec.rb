@@ -16,28 +16,29 @@ describe Appsignal::Grape::Middleware do
 
   def app; TestAPI; end
 
-  let(:event) { @events.pop }
-  subject { event.payload }
-
-  before(:all) do
-    @events     = []
-    ActiveSupport::Notifications.subscribe('process_action.grape.api.v1.hello.mark') do |*args|
-      @events << ActiveSupport::Notifications::Event.new(*args)
+  let(:events){ [] }
+  before do
+    ActiveSupport::Notifications.subscribe(/^[^!]/) do |*args|
+      events << ActiveSupport::Notifications::Event.new(*args)
     end
   end
 
-  before(:each) do
-    get "api/v1/hello/mark"
-  end
+  subject { get "api/v1/hello/mark"; events.pop.payload }
 
-  it do
-    should == { method: "GET" , path: "api/:version/hello/:name", action: "GET/api/v1/hello/mark", class: "API"}
+  it "should pass along the corret info."do
+    expect(subject).to eq(
+      { method: "GET" , path: "api/:version/hello/:name", action: "GET/api/v1/hello/mark", class: "API"}
+    )
   end
 
   context "verify the api request" do
-    subject{ last_response }
+    subject{ get "api/v1/hello/mark"; last_response }
 
-    its(:body){ should == "hello mark" }
-    its(:status){ should == 200 }
+    it "returns the correct body" do
+      expect(subject.body).to eq("hello mark")
+    end
+    it "returns the correct status code" do
+      expect(subject.status).to eq(200)
+    end
   end
 end

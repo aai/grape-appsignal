@@ -13,7 +13,7 @@ group :development, :test do
   gem 'rspec'
   gem 'github-markup'
   gem 'rack-test'
-  gem 'rspec-expectations', '~> 2.14.0'
-  gem 'rspec-mocks', '~> 2.14.0'
+  gem 'rspec-expectations', '~> 3.0.0'
+  gem 'rspec-mocks', '~> 3.0.0'
   gem 'listen', '~> 2.1'
 end
