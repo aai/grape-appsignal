@@ -37,7 +37,7 @@ describe Appsignal::Grape::Middleware do
 
     it "delivers a payload consistent with the API call."do
       expect(subject.payload ).to eq(
-        { method: "GET" , path: "hello/:id", action: "GET /hello/1337", class: "API"}
+        { method: "GET" , path: "hello/:id", action: "/hello/1337", class: "API"}
       )
     end
 
@@ -70,7 +70,7 @@ describe Appsignal::Grape::Middleware do
 
     it "delivers a payload consistent with the API call."do
       expect(subject.payload ).to eq(
-        { method: "GET" , path: "api/:version/hello/:name", action: "GET /api/v1/hello/mark", class: "API"}
+        { method: "GET" , path: "api/:version/hello/:name", action: "/api/v1/hello/mark", class: "API"}
       )
     end
 
