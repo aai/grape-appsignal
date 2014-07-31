@@ -13,9 +13,12 @@ module Appsignal
         method = env['REQUEST_METHOD']
 
         request_path = env['api.endpoint'].routes.first.route_path[1..-1].sub(/\(\.:format\)\z/, "")
-        metric_name  = "grape.#{req.request_method}.#{request_path}"
-        action = "#{env['PATH_INFO']}"
 
+        metric_name  = "grape.#{req.request_method}.#{request_path}"
+        metric_name = metric_name.gsub(/\/:?/, '.')
+
+        action = "#{env['PATH_INFO']}"
+        action = action.gsub(/\//, '::')
 
         ActiveSupport::Notifications.instrument(metric_name, { method: method, path: request_path, action: action, class: "API" } ) do |payload|
           @app.call(env)
