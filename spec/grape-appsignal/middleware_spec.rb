@@ -1,21 +1,6 @@
 require 'spec_helper'
 describe Appsignal::Grape::Middleware do
 
-  class ComplexAPI < Grape::API
-    prefix "api"
-    version "v1"
-    use Appsignal::Grape::Middleware
-
-    resource :hello do
-      get 'name/:name' do
-        "hello #{params['name']}"
-      end
-      get '/goodbye' do
-        "hello #{params['name']}"
-      end
-    end
-  end
-
   class SimpleAPI < Grape::API
     use Appsignal::Grape::Middleware
 
@@ -61,7 +46,7 @@ describe Appsignal::Grape::Middleware do
 
   context "with a complex API" do
     let(:events){ [] }
-    let(:app){ ComplexAPI }
+    let(:app){ ComplexAPI::Root }
     before do
       ActiveSupport::Notifications.subscribe(/^[^!]/) do |*args|
         events << ActiveSupport::Notifications::Event.new(*args)
@@ -93,7 +78,7 @@ describe Appsignal::Grape::Middleware do
 
     context "with a complex API" do
       let(:events){ [] }
-      let(:app){ ComplexAPI }
+      let(:app){ ComplexAPI::Root }
       before do
         ActiveSupport::Notifications.subscribe(/^[^!]/) do |*args|
           events << ActiveSupport::Notifications::Event.new(*args)
@@ -110,6 +95,28 @@ describe Appsignal::Grape::Middleware do
 
       it "names the payload consistent with the API call."do
         expect(subject.name ).to eq("process_action.grape.GET.api.version.hello.goodbye")
+      end
+    end
+
+    context 'with a complex nested API' do
+      let(:events){ [] }
+      let(:app){ ComplexAPI::Root }
+      before do
+        ActiveSupport::Notifications.subscribe(/^[^!]/) do |*args|
+          events << ActiveSupport::Notifications::Event.new(*args)
+        end
+      end
+
+      subject { get '/api/nested/v1/stuff'; events.last}
+
+      it 'delivers a payload consistent with the API call.' do
+        expect(subject.payload ).to eq(
+          { method: "GET" , path: "api/nested/:version/stuff", action: "Grape(v1)(api/nested)::GET/api/nested/v1/stuff", class: "API"}
+        )
+      end
+
+      it "names the payload consistent with the API call." do
+        expect(subject.name ).to eq("process_action.grape.GET.api.nested.version.stuff")
       end
     end
   end
