@@ -8,7 +8,9 @@
 
 Add this line to your application's Gemfile:
 
-    gem 'grape-appsignal', '~> 0.1.1'
+```ruby
+gem 'grape-appsignal', '~> 0.1.1'
+```
 
 Or install:
 
@@ -16,19 +18,21 @@ Or install:
 
 Include it in your Grape API like this
 
-    class TestAPI < Grape::API
-      # Make sure this is at the top of the class.
-      # If you are mounting other APIs it only needs to go into the base API
-      use Appsignal::Grape::Middleware
+```ruby
+class TestAPI < Grape::API
+  # Make sure this is at the top of the class.
+  # If you are mounting other APIs it only needs to go into the base API
+  use Appsignal::Grape::Middleware
 
-      helpers Helpers
-      mount ProfileAPI
+  helpers Helpers
+  mount ProfileAPI
 
-      get 'hello' do
-        "Hello World"
-      end
+  get 'hello' do
+    "Hello World"
+  end
 
-    end
+end
+```
 
 *Make sure you have already setup AppSignal for your app!*
 
