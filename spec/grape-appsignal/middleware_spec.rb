@@ -1,12 +1,15 @@
 require 'spec_helper'
+
 describe Appsignal::Grape::Middleware do
 
   class SimpleAPI < Grape::API
     use Appsignal::Grape::Middleware
 
     resource :hello do
-      get ':id' do
-        "hello #{params['id']}"
+      route_param :id do
+        get do
+          "hello #{params['id']}"
+        end
       end
     end
   end
@@ -15,7 +18,7 @@ describe Appsignal::Grape::Middleware do
     let(:events){ [] }
     let(:app){ SimpleAPI }
     before do
-      ActiveSupport::Notifications.subscribe(/^[^!]/) do |*args|
+      ActiveSupport::Notifications.subscribe('process_action.grape') do |*args|
         events << ActiveSupport::Notifications::Event.new(*args)
       end
     end
@@ -24,12 +27,20 @@ describe Appsignal::Grape::Middleware do
 
     it "delivers a payload consistent with the API call."do
       expect(subject.payload ).to eq(
-        { method: "GET" , path: "hello/:id", action: "Grape::GET/hello/:id", class: "API"}
+        {
+          params: {
+            'id' => '1337'
+          },
+          session: {},
+          method: 'GET',
+          path: '/hello/1337',
+          action: 'GET /hello/:id(.:format)'
+        }
       )
     end
 
     it "names the payload consistent with the API call."do
-      expect(subject.name ).to eq("process_action.grape.GET.hello.id")
+      expect(subject.name ).to eq("process_action.grape")
     end
 
     context "verify the api request" do
@@ -46,23 +57,31 @@ describe Appsignal::Grape::Middleware do
 
   context "with a complex API" do
     let(:events){ [] }
-    let(:app){ ComplexAPI::Root }
+    let!(:app){ ComplexAPI::Root }
     before do
-      ActiveSupport::Notifications.subscribe(/^[^!]/) do |*args|
+      ActiveSupport::Notifications.subscribe('process_action.grape') do |*args|
         events << ActiveSupport::Notifications::Event.new(*args)
       end
     end
 
-    subject { get "api/v1/hello/name/mark"; events.last}
+    subject { get '/api/v1/hello/name/mark'; events.last}
 
     it "delivers a payload consistent with the API call."do
       expect(subject.payload ).to eq(
-        { method: "GET" , path: "api/:version/hello/name/:name", action: "Grape(v1)(api)::GET/api/v1/hello/name/:name", class: "API"}
+        {
+          params: {
+            'name' => 'mark'
+          },
+          session: {},
+          method: 'GET',
+          path: '/api/v1/hello/name/mark',
+          action: 'GET /api/:version/hello(.:format)'
+        }
       )
     end
 
     it "names the payload consistent with the API call."do
-      expect(subject.name).to eq("process_action.grape.GET.api.version.hello.name.name")
+      expect(subject.name).to eq("process_action.grape")
     end
 
     context "verify the api request" do
@@ -80,7 +99,7 @@ describe Appsignal::Grape::Middleware do
       let(:events){ [] }
       let(:app){ ComplexAPI::Root }
       before do
-        ActiveSupport::Notifications.subscribe(/^[^!]/) do |*args|
+        ActiveSupport::Notifications.subscribe('process_action.grape') do |*args|
           events << ActiveSupport::Notifications::Event.new(*args)
         end
       end
@@ -89,12 +108,18 @@ describe Appsignal::Grape::Middleware do
 
       it "delivers a payload consistent with the API call."do
         expect(subject.payload ).to eq(
-          { method: "GET" , path: "api/:version/hello/goodbye", action: "Grape(v1)(api)::GET/api/v1/hello/goodbye", class: "API"}
+          {
+            params: {},
+            session: {},
+            method: 'GET',
+            path: '/api/v1/hello/goodbye',
+            action: 'GET /api/:version/hello(.:format)'
+          }
         )
       end
 
       it "names the payload consistent with the API call."do
-        expect(subject.name ).to eq("process_action.grape.GET.api.version.hello.goodbye")
+        expect(subject.name ).to eq("process_action.grape")
       end
     end
 
@@ -102,7 +127,7 @@ describe Appsignal::Grape::Middleware do
       let(:events){ [] }
       let(:app){ ComplexAPI::Root }
       before do
-        ActiveSupport::Notifications.subscribe(/^[^!]/) do |*args|
+        ActiveSupport::Notifications.subscribe('process_action.grape') do |*args|
           events << ActiveSupport::Notifications::Event.new(*args)
         end
       end
@@ -111,12 +136,18 @@ describe Appsignal::Grape::Middleware do
 
       it 'delivers a payload consistent with the API call.' do
         expect(subject.payload ).to eq(
-          { method: "GET" , path: "api/nested/:version/stuff", action: "Grape(v1)(api/nested)::GET/api/nested/v1/stuff", class: "API"}
+          {
+            params: {},
+            session: {},
+            method: 'GET',
+            path: '/api/nested/v1/stuff',
+            action: 'GET /api/nested/:version/stuff(.:format)'
+          }
         )
       end
 
       it "names the payload consistent with the API call." do
-        expect(subject.name ).to eq("process_action.grape.GET.api.nested.version.stuff")
+        expect(subject.name ).to eq("process_action.grape")
       end
     end
   end
