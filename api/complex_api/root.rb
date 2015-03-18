@@ -3,6 +3,6 @@ module ComplexAPI
     prefix 'api'
     use Appsignal::Grape::Middleware
 
-    mount ::ComplexAPI::V1::Root => '/v1'
+    mount ::ComplexAPI::V1::Root
   end
 end
