@@ -1,6 +1,6 @@
 # Appsignal::Grape
 
-[AppSignal][0] intergation for [Grape][1], based on code from these [NewRelic][2] and [Liberato][3] gems.
+[AppSignal][0] integration for [Grape][1], based on code from these [NewRelic][2] and [Liberato][3] gems.
 
 [![Build Status](https://travis-ci.org/aai/grape-appsignal.png?branch=master)](http://travis-ci.org/aai/grape-appsignal)
 
