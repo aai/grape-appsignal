@@ -1,40 +1,37 @@
 require 'grape'
+require 'appsignal'
 require 'active_support'
 
 module Appsignal
   module Grape
     class Middleware < ::Grape::Middleware::Base
-      def initialize(app)
-        @app = app
+      def initialize(app, options = {})
+        Appsignal.logger.debug 'Initializing Appsignal::Grape::Middleware'
+        @app, @options = app, options
       end
 
       def call(env)
-        req = ::Rack::Request.new(env)
-        method = env['REQUEST_METHOD']
-
-        api_endpoint = env['api.endpoint']
-
-
-        method_name = api_endpoint.method_name.gsub(/ ?[ \/]/, '/') if api_endpoint && api_endpoint.method_name
-        method_name = method_name.gsub(/\/\//, '/') if method_name
-
-        request_path = api_endpoint.routes.first.route_path[1..-1].sub(/\(\.:format\)\z/, "")
-
-        metric_name  = "process_action.grape.#{req.request_method}.#{request_path}"
-        metric_name = metric_name.gsub(/\/:?/, '.')
-
-        action = "Grape"
-        action = action + "(#{api_endpoint.settings[:version].first})" if
-          api_endpoint.settings[:version] && api_endpoint.settings[:version].first
-        action = action + "(#{api_endpoint.settings[:root_prefix]})" if
-          api_endpoint.settings  && api_endpoint.settings[:root_prefix]
-
-        action = action + "::#{method_name}"
-        #action = action.gsub(/  ?/, '/')
-
-        ActiveSupport::Notifications.instrument(metric_name, { method: method, path: request_path, action: action, class: "API" } ) do |payload|
-          @app.call(env)
+        ActiveSupport::Notifications.instrument(
+          'process_action.grape',
+          raw_payload(env)
+        ) do |payload|
+          begin
+            @app.call(env)
+          ensure
+            payload[:action] = "#{payload[:method]} #{env['api.endpoint'].prepare_path('')}"
+          end
         end
+      end
+
+      def raw_payload(env)
+        request = @options.fetch(:request_class, ::Grape::Request).new(env)
+        params = request.public_send(@options.fetch(:params_method, :params))
+        {
+          :params  => params.except(:route_info).to_hash,
+          :session => request.session.to_hash,
+          :method  => request.request_method,
+          :path    => request.path
+        }
       end
     end
   end
